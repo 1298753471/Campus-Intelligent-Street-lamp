@@ -1,0 +1,88 @@
+
+<HTML>
+
+<script src="js/jquery-1.5.1.min.js"></script>
+<script type="text/javascript">
+	
+	function sensor() {
+		var s1;
+		var s2;
+		var s3;
+		var s4;
+		var s5;
+		var s6;
+		s1 = Math.random();
+		s2 = Math.random();
+		s3 = Math.random();
+		s4 = Math.random();
+		s5 = Math.random();
+		s6 = Math.random();
+		$("#msgwrx").html(s1+25+"   ℃");
+		$("#msgsrx").html(s2+47+"   %RH");
+		$("#msggrx").html(s3+144+"   Lux");
+		$("#msgzrx").html("0");
+		$("#msgqrx").html(s5+66+"   Kpa");
+		$("#msgwrrx").html(s6+140+"   ppm");
+	}
+</script>
+
+
+<body bgcolor="#00BFFF">
+Sensor Page
+<br>
+<BUTTON type="button" id="btn_on" onclick="sensor()" >刷新</BUTTON>
+<!--<table width="600" frame="hsides" rules="groups" >  -->	
+ 
+<div id="all">
+<!-- 表格在父窗体中居中 -->
+<table width="100%" height="300" frame="hsides" rules="groups">
+<caption>传感器实时数据</caption>
+<tbody>
+<tr height="50px">
+<td></td>
+<td align="center">温度：</td>
+<td align="center"><TEXTAREA name="msgwrx" id="msgwrx" ROWS="1" COLS="30" ></TEXTAREA></td>
+<td></td>
+</tr>
+
+<tr height="50px">
+<td></td>
+<td align="center">湿度：</td>
+<td align="center"><TEXTAREA name="msgsrx" id="msgsrx" ROWS="1" COLS="30" ></TEXTAREA></td>
+<td></td>
+</tr>
+
+<tr height="50px">
+<td></td>
+<td align="center">光照强度：</td>
+<td align="center"><TEXTAREA name="msggrx" id="msggrx" ROWS="1" COLS="30" ></TEXTAREA></td>
+<td></td>
+</tr>
+
+<tr height="50px">
+<td></td>
+<td align="center">紫外线强度：</td>
+<td align="center"><TEXTAREA name="msgzrx" id="msgzrx" ROWS="1" COLS="30" ></TEXTAREA></td>
+<td></td>
+</tr>
+
+<tr height="50px">
+<td></td>
+<td align="center">气压：</td>
+<td align="center"><TEXTAREA name="msgqrx" id="msgqrx" ROWS="1" COLS="30" ></TEXTAREA></td>
+<td></td>
+</tr>
+
+<tr height="50px">
+<td></td>
+<td align="center">污染物浓度：</td>
+<td align="center"><TEXTAREA name="msgwrrx" id="msgwrrx" ROWS="1" COLS="30" ></TEXTAREA></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+	
+      
+</body>
+</HTML>

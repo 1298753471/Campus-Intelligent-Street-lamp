@@ -1,0 +1,64 @@
+<HTML>
+<p>蓝色银河系</p>
+	<body bgcolor="#8DEEEE">
+		<canvas id="myCanvas" width="620" height="80" style="border:1px solid #c3c3c3;"></canvas>
+		<script type="text/javascript">
+			var c = document.getElementById("myCanvas");
+			var cxt = c.getContext("2d");
+
+			/*
+			//画矩形
+			cxt.fillStyle="#FF0000";
+			cxt.fillRect(0,0,150,75);
+			//画线
+			cxt.moveTo(10,10);
+			cxt.lineTo(150,50);
+			cxt.lineTo(10,50);
+			cxt.stroke();
+			//画圆
+			cxt.fillStyle="#00FF00";
+			cxt.beginPath();
+			cxt.arc(70,18,15,0,Math.PI*2,true);
+			cxt.closePath();
+			cxt.fill();
+			*/
+			/*
+			//渐变背景
+			var grd=cxt.createLinearGradient(200,0,175,50);
+			grd.addColorStop(0,"#FF0000");
+			grd.addColorStop(1,"#00FF00");
+			cxt.fillStyle=grd;
+			cxt.fillRect(200,0,175,50);
+			*/
+			/*
+			//文字
+			cxt.font = "20px Georgia";
+			cxt.fillText("Hello World!", 10, 50);
+			*/
+
+			//渐变文字
+			cxt.font = "30px Verdana";
+			// 创建渐变
+			var gradient = cxt.createLinearGradient(0, 0, 200, 0);
+			gradient.addColorStop("0", "magenta");
+			gradient.addColorStop("0.5", "blue");
+			gradient.addColorStop("1.0", "red");
+			// 用渐变填色
+			cxt.fillStyle = gradient;
+			//cxt.fillText("longtianyu1.blog.163.com", 10, 90);
+			//镂空文字
+			//cxt.strokeText("Hello World!", 10, 130);
+
+			//镂空渐变文字
+			cxt.strokeStyle = gradient;
+			cxt.strokeText("The Campus Of Intelligent Street Lamp", 10,70);
+			/*
+			//图片
+			var img=new Image()
+			img.src="flower.png"
+			cxt.drawImage(img,200,0);
+			*/
+		</script>
+	</body>
+
+</HTML>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<HTML>
+<head>
+<title>Simple MCU COM Messaging Framework.</title>
+<script src="js/jquery-1.5.1.min.js"></script>
+<script type="text/javascript">
+	/*+*****************************************************
+	  File name: SimpleFrame
+	  Description: Simple Framework that exchange message with 
+	               MCU through UART.
+	  Modification:
+	  2011.04.17 creation Zheng Hui
+	  2012.10.04 renew display
+	 *****************************************************-*/
+	/**
+	 * start timer to poll message periodly
+	 */
+	function startTimer() {
+		pollMessage();
+	}
+	/**
+	 * poll message
+	 */
+	function pollMessage() {
+		var pCurrTime = new Date().getTime();
+		$.post("GetMessages.jsp?timestamp=" + pCurrTime, function(vRetData) {
+			handleMessage(vRetData);
+			t = setTimeout('startTimer()', 2000);
+		}, "xml");
+	}
+	/**
+	 * handle message
+	 */
+	function handleMessage(vRetData) {
+		var pMsgs = vRetData.getElementsByTagName("msg");
+		//alert(pMsgs.length);
+		if (pMsgs.length > 0) {
+			for (i = 0; i < pMsgs.length; i++) {
+				var pRawBytes = pMsgs[i].getElementsByTagName("rawbytes");
+				var pTxt = pRawBytes[0].childNodes[0].nodeValue;
+				addLog("receive msg: " + pTxt);
+			}
+			var xValueStr = pMsgs[pMsgs.length - 1].getAttribute("xvalue");
+			var xValue = parseInt(xValueStr);
+			var yValueStr = pMsgs[pMsgs.length - 1].getAttribute("yvalue");
+			var yValue = parseInt(yValueStr);
+			var sNodeId = pMsgs[pMsgs.length - 1].getAttribute("nodeid");
+			var sRssi = pMsgs[pMsgs.length - 1].getAttribute("rssi");
+			$("#msgrx").html(
+					"温度值：" + xValueStr + "  电池电压：" + yValueStr + "  \n节点ID："
+							+ sNodeId + "  RSSI：" + sRssi);
+		}
+	}
+	/**
+	 * send message
+	 */
+	function sendMessage(vCmd, vOption) {
+		//alert("sendMessage:" +vCmd+" "+vOption);
+		$.post("SendMessage.jsp?cmd=" + vCmd + "&option=" + vOption, function(
+				vRetData) {
+			handleSendRet(vRetData);
+		}, "xml");
+	}
+	/**
+	 * handle send message return info
+	 */
+	function handleSendRet(vRetData) {
+		var pStatus = vRetData.getElementsByTagName("status")[0].childNodes[0].nodeValue;
+		addLog("send msg " + pStatus);
+	}
+	/**
+	 * add text to log
+	 */
+	function addLog(vTxt) {
+		//var pCurrentLogText=document.getElementById("msglog").value;
+		var pCurrentLogText = $("#msglog").html();
+		$("#msglog").html(pCurrentLogText + "\n" + vTxt);
+	}
+	/**
+	 * clear log
+	 */
+	function clearLogs() {
+		$("#msglog").html("");
+	}
+</script>
+
+
+</head>
+<body onload="startTimer()" bgcolor="#00BFFF">
+	<P>串口状态：<select id="s1_text1_bold">
+		<option value="1">COM1</option>
+		<option value="2">COM2</option>
+		<option value="3">COM3</option>
+		<option value="4">COM4</option>
+		<option value="5">COM5</option>
+		<option value="5" selected="">COM6</option>
+		<option value="5">COM7</option>
+		<option value="5">COM8</option>
+		<option value="5">COM9</option>
+		<option value="5">COM10</option>
+
+	</select></P>
+	
+	<P>控制：</P>
+	<BUTTON type="button" id="btn_on" onclick="sendMessage(1, 1)">开灯</BUTTON>
+	<BUTTON type="button" id="btn_off" onclick="sendMessage(1, 0)">关灯</BUTTON>
+	<BUTTON type="button" id="btn_toggle" onclick="sendMessage(1, 2)">切换路灯</BUTTON>
+	<BR>
+	<P>消息日志：</P>
+	<TEXTAREA name="msglog" id="msglog" ROWS="5" COLS="30"></TEXTAREA>
+	<BUTTON type="button" id="btn_clear" onclick="clearLogs()">清除日志</BUTTON>
+	<br>
+
+</body>
+</HTML>
