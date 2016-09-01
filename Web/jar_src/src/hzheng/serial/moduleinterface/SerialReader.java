@@ -1,0 +1,137 @@
+/*+*********************************************************
+* Filename: SerialReader.java
+* 从串口不断读入数据，按照指定的格式进行帧界定，交给上层应用处理。
+*
+* Modification:
+*   creation  08.06.01  by Zheng Hui （根据06.10.10 zigbeemodulemanager代码修改）
+*
+* 数据帧格式要求：以0x7e 0x7e为标志进行帧分隔。标志后面的第1个字节为长度指示字节。
+***********************************************************-*/
+package hzheng.serial.moduleinterface;
+
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+
+
+/**
+ * 从串口不断读入数据，按照指定的格式转换为数据类，交给上层应用处理。
+ */
+public class SerialReader implements Runnable
+{
+  /**
+   * 日志句柄
+   */
+  private static Logger log = Logger.getLogger("hzheng.serial.moduleinterface.SerialReader");
+
+  /**
+   * 串口的输入
+   */
+  private InputStream mInputStream;
+
+  /**
+   * 上层应用的回调函数
+   */
+  private UploadDataListenerI mListener;
+  
+  
+  /**
+   * un-sync flag
+   */
+  private boolean mUnsyncFlag = true; //=1, unsync
+
+  /**
+   * 构造函数，需传入串口的InputStream和上层应用的回调函数
+   */
+  public SerialReader ( InputStream vInputStream, UploadDataListenerI vListener )
+  {
+      mInputStream = vInputStream;
+      mListener = vListener;
+  }
+
+  /**
+   * 数据读入及处理
+   */
+   
+  /**
+   * 数据格式：以0x7e 0x7e为标志进行帧分隔。标志后面的第1个字节为长度指示字节，指示后续的数据字节数目。帧长不定长，最大256个字节。
+   */
+  private static int MAX_FRAME_SIZE = 256;
+  public void run () {
+    byte[] pFrame = new byte[MAX_FRAME_SIZE]; //用来保存读入的字节
+    int len, ret;
+    
+    try {
+      while (true) { //until exception
+        //先进行数据帧同步 （读入FLAG）
+        sync();
+        //读入长度指示字节
+        len = mInputStream.read();
+        pFrame[0] = (byte)len;
+        //read next len bytes into buffer
+        while ( len > 0 ) {
+          ret=mInputStream.read(pFrame, pFrame[0] - len + 1, len );
+          if (ret<0) {
+            log.info("sub-thread quit.");
+            break;
+          }
+        	len = len - ret;
+        }
+        HandlerFrame(pFrame);
+        //
+        if (Thread.interrupted()) {
+          break;
+        }
+      }
+    } catch ( IOException e ) {
+      if (!Thread.interrupted()) {
+        e.printStackTrace();
+        log.error(e);
+      }
+      log.info("sub-thread quit.");
+    }
+  }
+
+  /**
+   * 帧同步
+   * flag = 0x7e 0x7e
+   */
+  private void sync() {
+  	//read flag
+    int iValue = -1;
+    try {
+      while (true ){
+        iValue = mInputStream.read();
+        if (iValue == -1)
+          continue;
+        //
+        if (iValue == 0x7e) {
+        	//read next flag byte
+        	iValue = mInputStream.read();
+        	if (iValue == 0x7e) {
+            return;
+          }
+        }
+      }
+      
+    } catch ( IOException e ) {
+      e.printStackTrace();
+      log.error(e);
+    }  	
+  }
+
+
+  /**
+   * 将字节数据转换为数据VO类，交上层应用处理。
+   */
+  private void HandlerFrame(byte[] vFrame) {
+    //
+    byte[] pNewFrame = new byte[vFrame[0]];
+    for (int i=0;i<vFrame[0];i++) {
+      pNewFrame[i]=vFrame[i+1];
+    }
+    mListener.handleData(pNewFrame);
+  }
+}

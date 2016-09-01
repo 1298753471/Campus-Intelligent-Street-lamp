@@ -1,0 +1,80 @@
+<!--
+  Description: (can not write in Chinese because of the limitation of ant)
+  This template is copied from "simple example build file" in ant's help document
+  with following modifications:
+  * change "dist" dir to ".." (note: the target jar file will be created in ../lib)
+  * add the definition of CLASSPATH elements
+  * add the definition of target jar filename
+  * the clean operation: change from remove dist dir to remove target jar file
+  
+  To use the template in new sub-system, do these modifications:
+  1. modify the target jar filename
+  2. modify the elements of CLASSPATH
+  The other parts of the template can be no change.
+
+  modification of this template:
+  2006.07.02 creation by H.Zheng
+  
+ -->
+
+<project name="MyProject" default="dist" basedir=".">
+    <description>
+        simple build file
+    </description>
+  <!-- set global properties for this build -->
+
+  <!-- *************************** -->
+  <!-- MODIFICATION session        -->
+
+  <!-- modify output jar filename  -->
+  <property name="jarfile"  value="controller.jar"/>
+
+  <!-- set classpath elements      -->
+  <path id="project.class.path"> 
+    <pathelement location=".\lib_ext\log4j.jar"/>
+    <pathelement location=".\lib_ext\RXTXcomm.jar"/>
+    <pathelement location=".\lib_ext\jcommon-1.0.12.jar"/>
+    <pathelement location=".\lib_ext\jfreechart-1.0.8a.jar"/>
+    <pathelement location=".\lib_ext\j3dcore.jar"/>
+    <pathelement location=".\lib_ext\j3dutils.jar"/>
+    <pathelement location=".\lib_ext\vecmath.jar"/>
+  </path>
+  
+  <!-- END of MODIFICATION session -->
+  <!-- *************************** -->
+  
+  
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="."/>
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" classpathref="project.class.path" />
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <!-- Put everything in ${build} into jar file -->
+    <jar jarfile="${dist}/lib/${jarfile}" basedir="${build}"/>
+  </target>
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete file="${dist}/lib/${jarfile}"/>
+  </target>
+</project>
+

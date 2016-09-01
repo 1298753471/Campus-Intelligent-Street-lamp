@@ -1,0 +1,18 @@
+/*+*********************************************************
+* Filename: UploadDataListenerI.java
+* 定义上层应用获取从串行接口接收到的数据的接口。
+*
+* Modification:
+*   creation  08.06.01  by Zheng Hui
+*
+***********************************************************-*/
+package hzheng.serial.moduleinterface;
+
+
+public interface UploadDataListenerI {
+  /**
+   * 处理数据
+   */
+  public void handleData(byte[] vData);
+
+}

@@ -1,0 +1,182 @@
+/*+*********************************************************
+* Filename: CommController.java
+* 通过串口与WSN模块通信，实现串行数据的帧界定，向上层应用
+* 提供独立于串行接口协议格式的应用接口。
+*
+* Modification:
+*   creation  08.06.01  by Zheng Hui
+*
+***********************************************************-*/
+package hzheng.serial.moduleinterface;
+
+import org.apache.log4j.Logger;
+
+import gnu.io.CommPort;
+import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
+
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+
+
+/**
+ * 管理串行端口的读写。Singleton类。
+ * 以单独的线程读，以该读线程调用上层应用的回调函数进行数据处理，
+ * 因此上层应用的回调函数不能阻塞。
+ */
+public class CommController {
+
+  /**
+   * 日志句柄
+   */
+  private static Logger log = Logger.getLogger("hzheng.serial.moduleinterface.CommController");
+
+  /**
+   * 本类的唯一实例
+   */
+  private static CommController mController = null;
+
+
+  /**
+   * 串口实例
+   */
+  private SerialPort mSerialPort = null;
+  
+  /**
+   * 读串口线程
+   */
+  private Thread mSubThread = null;
+  
+
+  /**
+   * 构造函数。防止应用直接创建本类实例
+   */
+  private CommController()
+  {
+  }
+
+  /**
+   * 应用通过本方法获得实例
+   */
+  public static CommController getController() {
+    if (mController == null)
+      mController = new CommController();
+
+    return mController;
+  }
+
+
+  /**
+   * 开启COM口，新建串口读线程
+   */
+  public void connect ( String vPortName, UploadDataListenerI vListener ) throws Exception  {
+      CommPortIdentifier pPortIdentifier = CommPortIdentifier.getPortIdentifier(vPortName);
+      if ( pPortIdentifier.isCurrentlyOwned() )
+      {
+          log.error("Port is currently in use");
+      }
+      else
+      {
+          CommPort pCommPort = pPortIdentifier.open(this.getClass().getName(),2000);
+
+          if ( pCommPort instanceof SerialPort )
+          {
+              mSerialPort = (SerialPort) pCommPort;
+              mSerialPort.setSerialPortParams(57600,SerialPort.DATABITS_8,SerialPort.STOPBITS_1,SerialPort.PARITY_NONE);
+
+              InputStream in = mSerialPort.getInputStream();
+              
+              mSubThread=new Thread(new SerialReader(in, vListener));
+
+              mSubThread.start();
+
+          }
+          else
+          {
+              log.error("specified port is not serial ports.");
+          }
+      }
+  }
+
+
+  /**
+   * 发送数据
+   */
+  public void send ( byte[] vBytes) throws Exception  {
+    OutputStream pOut = mSerialPort.getOutputStream();
+
+    pOut.write(vBytes);
+    
+    //
+    String sendString = bytesToHexString(vBytes);
+    log.info("data sent: " + sendString);
+
+  }
+  /**
+   * 退出
+   */
+  public void close () {
+    mSerialPort.close();
+    mSubThread.interrupt();
+  }
+
+  /**
+   * convert bytes to hex string
+   */
+  private String bytesToHexString(byte[] vBytes) {
+    String s = new String("");
+    if ((vBytes == null) || (vBytes.length == 0)) {
+      return s;
+    }
+    for (int i=0;i<vBytes.length;i++) {
+      s = s + " " + byteToHexString(vBytes[i]);
+    }
+    return s;
+  }
+  /**
+   * convert byte to hex string
+   */
+  private String byteToHexString(byte vByte) {
+    String s = Integer.toHexString(vByte&0xff);
+    if (s.length() == 1)
+      s = "0" + s;
+      
+    return s;
+  }
+
+
+  //for test
+  private static class App implements UploadDataListenerI {
+    public void handleData(byte[] vData) {
+      System.out.println(vData);
+    }
+  }
+
+  public static void main ( String[] args )
+  {
+    if (args.length != 1) {
+      System.out.println("Usage: java CommController <COM port name>");
+      return;
+    }
+
+    App pApp = new App();
+    try {
+        CommController.getController().connect(args[0], pApp);
+    } catch ( Exception e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
+
+    try {
+      while (true) {
+        Thread.currentThread().sleep(1000);
+      }
+    } catch ( Exception e ) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+    }
+  }
+}
